@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CD Collection Manager</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-image: url('./derwentwater.jfif');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%);
+        }
+        
+        .main-panel {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .glass-panel {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .export-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .export-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .setup-panel {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .setup-input {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            margin-bottom: 12px;
+        }
+        
+        .setup-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .search-bar {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            color: white;
+            margin-bottom: 16px;
+        }
+        
+        .search-bar::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            min-width: 120px;
+        }
+        
+        .filter-select option {
+            background: #333;
+            color: white;
+        }
+        
+        .collection-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+        
+        .cd-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 80px;
+        }
+        
+        .cd-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        
+        .cd-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .cd-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .cd-info {
+            padding: 12px;
+            color: white;
+        }
+        
+        .cd-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .cd-artist {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+        }
+        
+        .floating-buttons {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 1000;
+        }
+        
+        .floating-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .btn-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .btn-blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 48px 24px;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .modal-input {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            margin-bottom: 16px;
+        }
+        
+        .modal-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+            
+            .floating-buttons {
+                bottom: 16px;
+                right: 16px;
+            }
+            
+            .floating-btn {
+                width: 56px;
+                height: 56px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-panel">
+            <div class="glass-panel">
+                <div class="header">
+                    <h1 class="title">CD Collection Manager</h1>
+                    <button class="export-btn" onclick="exportToExcel()">
+                        <span>📥</span>
+                        Export to Excel
+                    </button>
+                </div>
+                
+                <!-- Setup Panel -->
+                <div id="setupPanel" class="setup-panel">
+                    <h3 style="color: white; margin-bottom: 16px;">🔧 Setup GitHub Connection</h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 16px;">Enter your GitHub credentials to enable data storage:</p>
+                    <input type="text" class="setup-input" id="githubOwner" placeholder="Your GitHub username">
+                    <input type="password" class="setup-input" id="githubToken" placeholder="Your GitHub personal access token">
+                    <button class="btn btn-primary" onclick="saveConfig()" style="width: 100%;">Connect to GitHub</button>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('collection')">Collection</div>
+                    <div class="tab" onclick="showTab('statistics')">Statistics</div>
+                </div>
+                
+                <div id="collection-tab">
+                    <input type="text" class="search-bar" placeholder="Search your collection..." oninput="filterCDs()">
+                    
+                    <div class="filters">
+                        <select class="filter-select" id="yearFilter" onchange="filterCDs()">
+                            <option value="all">All Years</option>
+                        </select>
+                        <select class="filter-select" id="genreFilter" onchange="filterCDs()">
+                            <option value="all">All Genres</option>
+                        </select>
+                        <select class="filter-select" id="artistFilter" onchange="filterCDs()">
+                            <option value="all">All Artists</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                    </div>
+                    
+                    <div class="collection-info">
+                        <span id="cdCount">0 CDs in collection</span>
+                        <span>Stored in GitHub</span>
+                    </div>
+                    
+                    <div id="cdGrid" class="cd-grid">
+                        <div class="empty-state">
+                            <div class="empty-icon">📀</div>
+                            <h3>No CDs in your collection</h3>
+                            <p>Connect to GitHub and add your first CD using the buttons below</p>
+                            <div style="margin-top: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">✎</div>
+                                        <span>Green: Enter barcode manually</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center;">📷</div>
+                                        <span>Blue: Scan with camera</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="statistics-tab" class="hidden">
+                    <div style="color: white; text-align: center; padding: 48px;">
+                        <h3>Statistics will appear here when you add CDs to your collection</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="floating-buttons">
+        <button class="floating-btn btn-green" onclick="openManualEntry()" title="Enter Barcode Manually">
+            ✎
+        </button>
+        <button class="floating-btn btn-blue" onclick="openScanner()" title="Scan Barcode with Camera">
+            📷
+        </button>
+    </div>
+    
+    <!-- Manual Entry Modal -->
+    <div id="manualModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="color: white; margin-bottom: 16px;">Enter Barcode Manually</h3>
+            <input type="text" class="modal-input" id="barcodeInput" placeholder="Enter CD barcode..." maxlength="13">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal('manualModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="searchByBarcode()">Search</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scanner Modal -->
+    <div id="scannerModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="color: white; margin-bottom: 16px;">Camera Scanner</h3>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 16px;">Camera scanning requires HTTPS. For now, use manual entry.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal('scannerModal')">Close</button>
+                <button class="btn btn-primary" onclick="openManualEntry(); closeModal('scannerModal')">Enter Manually</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let GITHUB_TOKEN = '';
+        let GITHUB_OWNER = '';
+        const GITHUB_REPO = 'cd-collection-data';
+        const GITHUB_FILE = 'cd-collection.json';
+        
+        let allCDs = [];
+        let filteredCDs = [];
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+        });
+        
+        function loadConfig() {
+            const savedOwner = localStorage.getItem('github_owner');
+            const savedToken = localStorage.getItem('github_token');
+            
+            if (savedOwner && savedToken) {
+                GITHUB_OWNER = savedOwner;
+                GITHUB_TOKEN = savedToken;
+                document.getElementById('setupPanel').style.display = 'none';
+                loadCDs();
+            }
+        }
+        
+        function saveConfig() {
+            const owner = document.getElementById('githubOwner').value.trim();
+            const token = document.getElementById('githubToken').value.trim();
+            
+            if (!owner || !token) {
+                alert('Please enter both your GitHub username and personal access token');
+                return;
+            }
+            
+            GITHUB_OWNER = owner;
+            GITHUB_TOKEN = token;
+            
+            localStorage.setItem('github_owner', owner);
+            localStorage.setItem('github_token', token);
+            
+            document.getElementById('setupPanel').style.display = 'none';
+            loadCDs();
+        }
+        
+        // GitHub API functions
+        async function makeGitHubRequest(endpoint, options = {}) {
+            const response = await fetch(`https://api.github.com${endpoint}`, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'CD-Collection-Manager',
+                    ...options.headers,
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+            }
+            
+            return response.json();
+        }
+        
+        async function ensureRepository() {
+            try {
+                await makeGitHubRequest(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}`);
+            } catch (error) {
+                // Repository doesn't exist, create it
+                await makeGitHubRequest('/user/repos', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: GITHUB_REPO,
+                        description: 'CD Collection Manager - Personal Music Database',
+                        private: true,
+                        auto_init: true,
+                    }),
+                });
+            }
+        }
+        
+        async function loadCDs() {
+            try {
+                await ensureRepository();
+                const response = await makeGitHubRequest(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`);
+                
+                if (response.content) {
+                    allCDs = JSON.parse(atob(response.content));
+                    filteredCDs = [...allCDs];
+                    updateDisplay();
+                    updateFilters();
+                }
+            } catch (error) {
+                console.log('No existing collection found, starting fresh');
+                allCDs = [];
+                filteredCDs = [];
+                updateDisplay();
+            }
+        }
+        
+        async function saveCDs() {
+            try {
+                await ensureRepository();
+                
+                let sha;
+                try {
+                    const response = await makeGitHubRequest(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`);
+                    sha = response.sha;
+                } catch (error) {
+                    // File doesn't exist yet
+                }
+                
+                const content = btoa(JSON.stringify(allCDs, null, 2));
+                
+                await makeGitHubRequest(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `Update CD collection - ${new Date().toISOString()}`,
+                        content,
+                        sha,
+                    }),
+                });
+                
+                console.log('Collection saved to GitHub');
+            } catch (error) {
+                console.error('Error saving to GitHub:', error);
+                alert('Error saving to GitHub. Please check your configuration.');
+            }
+        }
+        
+        // UI Functions
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tabName === 'collection' ? '1' : '2'})`).classList.add('active');
+            
+            document.getElementById('collection-tab').classList.toggle('hidden', tabName !== 'collection');
+            document.getElementById('statistics-tab').classList.toggle('hidden', tabName !== 'statistics');
+        }
+        
+        function updateDisplay() {
+            const grid = document.getElementById('cdGrid');
+            const countEl = document.getElementById('cdCount');
+            
+            countEl.textContent = `${filteredCDs.length} CDs in collection`;
+            
+            if (filteredCDs.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📀</div>
+                        <h3>No CDs in your collection</h3>
+                        <p>Add your first CD using the buttons below</p>
+                        <div style="margin-top: 20px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">✎</div>
+                                    <span>Green: Enter barcode manually</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center;">📷</div>
+                                    <span>Blue: Scan with camera</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = filteredCDs.map(cd => `
+                    <div class="cd-card">
+                        <div class="cd-cover">
+                            ${cd.coverImageUrl ? `<img src="${cd.coverImageUrl}" alt="${cd.title}" style="width: 100%; height: 100%; object-fit: cover;">` : '💿'}
+                        </div>
+                        <div class="cd-info">
+                            <div class="cd-title">${cd.title}</div>
+                            <div class="cd-artist">${cd.artist}</div>
+                            ${cd.year ? `<div style="color: rgba(255,255,255,0.6); font-size: 0.75rem;">${cd.year}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function updateFilters() {
+            const years = [...new Set(allCDs.map(cd => cd.year).filter(Boolean))].sort((a, b) => b - a);
+            const genres = [...new Set(allCDs.map(cd => cd.genre).filter(Boolean))].sort();
+            const artists = [...new Set(allCDs.map(cd => cd.artist))].sort();
+            
+            const yearFilter = document.getElementById('yearFilter');
+            const genreFilter = document.getElementById('genreFilter');
+            const artistFilter = document.getElementById('artistFilter');
+            
+            yearFilter.innerHTML = '<option value="all">All Years</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+            genreFilter.innerHTML = '<option value="all">All Genres</option>' + genres.map(genre => `<option value="${genre}">${genre}</option>`).join('');
+            artistFilter.innerHTML = '<option value="all">All Artists</option>' + artists.map(artist => `<option value="${artist}">${artist}</option>`).join('');
+        }
+        
+        function filterCDs() {
+            const searchQuery = document.querySelector('.search-bar').value.toLowerCase();
+            const yearFilter = document.getElementById('yearFilter').value;
+            const genreFilter = document.getElementById('genreFilter').value;
+            const artistFilter = document.getElementById('artistFilter').value;
+            
+            filteredCDs = allCDs.filter(cd => {
+                const matchesSearch = !searchQuery || 
+                    cd.title.toLowerCase().includes(searchQuery) ||
+                    cd.artist.toLowerCase().includes(searchQuery) ||
+                    (cd.genre && cd.genre.toLowerCase().includes(searchQuery));
+                
+                const matchesYear = yearFilter === 'all' || cd.year?.toString() === yearFilter;
+                const matchesGenre = genreFilter === 'all' || cd.genre === genreFilter;
+                const matchesArtist = artistFilter === 'all' || cd.artist === artistFilter;
+                
+                return matchesSearch && matchesYear && matchesGenre && matchesArtist;
+            });
+            
+            updateDisplay();
+        }
+        
+        function clearFilters() {
+            document.querySelector('.search-bar').value = '';
+            document.getElementById('yearFilter').value = 'all';
+            document.getElementById('genreFilter').value = 'all';
+            document.getElementById('artistFilter').value = 'all';
+            filterCDs();
+        }
+        
+        // Modal functions
+        function openManualEntry() {
+            if (!GITHUB_TOKEN) {
+                alert('Please configure GitHub connection first');
+                return;
+            }
+            document.getElementById('manualModal').classList.remove('hidden');
+            document.getElementById('barcodeInput').focus();
+        }
+        
+        function openScanner() {
+            document.getElementById('scannerModal').classList.remove('hidden');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+        
+        // Barcode search
+        async function searchByBarcode() {
+            const barcode = document.getElementById('barcodeInput').value.trim();
+            if (!barcode) {
+                alert('Please enter a barcode');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://musicbrainz.org/ws/2/release?query=barcode:${barcode}&fmt=json`);
+                const data = await response.json();
+                
+                if (data.releases && data.releases.length > 0) {
+                    const release = data.releases[0];
+                    const cd = {
+                        id: allCDs.length > 0 ? Math.max(...allCDs.map(cd => cd.id)) + 1 : 1,
+                        title: release.title,
+                        artist: release['artist-credit'][0].artist.name,
+                        year: release.date ? parseInt(release.date.substring(0, 4)) : null,
+                        genre: release['release-group']?.['primary-type'] || null,
+                        barcode: barcode,
+                        coverImageUrl: null,
+                        tracklist: null,
+                        duration: null,
+                        recordLabel: release['label-info']?.[0]?.label?.name || null,
+                        country: release.country || null,
+                        musicbrainzId: release.id,
+                        isFavorite: false,
+                        addedAt: new Date().toISOString(),
+                    };
+                    
+                    allCDs.push(cd);
+                    filteredCDs = [...allCDs];
+                    updateDisplay();
+                    updateFilters();
+                    await saveCDs();
+                    
+                    closeModal('manualModal');
+                    document.getElementById('barcodeInput').value = '';
+                    alert('CD added successfully!');
+                } else {
+                    alert('No CD found with this barcode');
+                }
+            } catch (error) {
+                console.error('Error searching for CD:', error);
+                alert('Error searching for CD. Please try again.');
+            }
+        }
+        
+        // Export function
+        function exportToExcel() {
+            if (allCDs.length === 0) {
+                alert('No CDs to export');
+                return;
+            }
+            
+            const headers = [
+                'Title', 'Artist', 'Year', 'Genre', 'Barcode', 'Record Label',
+                'Country', 'Duration (minutes)', 'Tracklist', 'Cover Image URL',
+                'MusicBrainz ID', 'Is Favorite', 'Date Added'
+            ];
+            
+            const csvContent = [
+                headers.join(','),
+                ...allCDs.map(cd => [
+                    `"${cd.title.replace(/"/g, '""')}"`,
+                    `"${cd.artist.replace(/"/g, '""')}"`,
+                    cd.year || '',
+                    `"${cd.genre || ''}"`,
+                    cd.barcode || '',
+                    `"${cd.recordLabel || ''}"`,
+                    `"${cd.country || ''}"`,
+                    cd.duration ? Math.round(cd.duration / 60) : '',
+                    `"${cd.tracklist ? cd.tracklist.join('; ') : ''}"`,
+                    cd.coverImageUrl || '',
+                    cd.musicbrainzId || '',
+                    cd.isFavorite ? 'Yes' : 'No',
+                    new Date(cd.addedAt).toLocaleDateString()
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `cd-collection-${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('.search-bar').focus();
+            }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden'));
+            }
+        });
+    </script>
+</body>
+</html>
